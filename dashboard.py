@@ -2,7 +2,6 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import os  # To check file paths
-from cryptography.fernet import Fernet  # For decryption
 
 # Set Page Config (Title & Layout)
 st.set_page_config(page_title="Educational Dashboard", layout="wide")
@@ -10,17 +9,6 @@ st.set_page_config(page_title="Educational Dashboard", layout="wide")
 # Define logo paths
 vic_logo_path = "viclogo.png"  # Ensure this is in the same folder as `dashboard.py`
 cc_logo_path = "cc_logo.png"  # Add a Creative Commons logo if needed
-
-# Load encryption key (Use the same key from `scrape_acara.py`)
-key = b'ejlFEAhslsWI2J0zer_OFwXexzf3woq4Qzgg0_vX5Wk='  # Replace with your actual key
-cipher_suite = Fernet(key)
-
-# Function to decrypt data
-def decrypt_data(data):
-    try:
-        return cipher_suite.decrypt(data.encode()).decode()
-    except:
-        return data  # If decryption fails, return raw data
 
 # CSS for styling
 st.markdown("""
@@ -112,39 +100,18 @@ elif page == "National Reports":
     st.header("📂 National Reports")
     query = "SELECT title, file_type, year, url FROM datasets WHERE file_type='PDF'"
     df = pd.read_sql(query, conn)
-
-    # Decrypt all columns before displaying
-    df["title"] = df["title"].apply(decrypt_data)
-    df["file_type"] = df["file_type"].apply(decrypt_data)
-    df["year"] = df["year"].apply(decrypt_data)
-    df["url"] = df["url"].apply(decrypt_data)
-
     st.dataframe(df)
 
 elif page == "Schooling Data":
     st.header("📂 Schooling Data")
     query = "SELECT title, file_type, year, url FROM datasets WHERE file_type='Excel'"
     df = pd.read_sql(query, conn)
-
-    # Decrypt all columns before displaying
-    df["title"] = df["title"].apply(decrypt_data)
-    df["file_type"] = df["file_type"].apply(decrypt_data)
-    df["year"] = df["year"].apply(decrypt_data)
-    df["url"] = df["url"].apply(decrypt_data)
-
     st.dataframe(df)
 
 elif page == "Additional Resources":
     st.header("📂 Additional Resources")
     query = "SELECT title, file_type, year, url FROM datasets WHERE file_type IS NOT NULL"
     df = pd.read_sql(query, conn)
-
-    # Decrypt all columns before displaying
-    df["title"] = df["title"].apply(decrypt_data)
-    df["file_type"] = df["file_type"].apply(decrypt_data)
-    df["year"] = df["year"].apply(decrypt_data)
-    df["url"] = df["url"].apply(decrypt_data)
-
     st.dataframe(df)
 
 # Close database connection

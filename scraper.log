@@ -33,3 +33,8 @@
 2025-03-07 23:05:08,901 - INFO - plugin_name: caching_sha2_password
 2025-03-07 23:05:08,901 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
 2025-03-07 23:05:09,700 - INFO - \u2705 Data successfully stored in MySQL database!
+2025-03-07 23:15:09,025 - INFO - \u2705 Data successfully stored in 'education_data.db' with descriptions!
+2025-03-07 23:15:09,118 - INFO - package: mysql.connector.plugins
+2025-03-07 23:15:09,118 - INFO - plugin_name: caching_sha2_password
+2025-03-07 23:15:09,118 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-03-07 23:15:09,145 - INFO - \u2705 Data successfully stored in MySQL database!

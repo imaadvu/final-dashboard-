@@ -10,9 +10,10 @@ from cryptography.fernet import Fernet  # For encryption
 # Configure logging
 logging.basicConfig(filename="scraper.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Generate encryption key (Do this once & store securely)
-key = Fernet.generate_key()
+# Use a pre-generated encryption key (store this securely!)
+key = b'ejlFEAhslsWI2J0zer_OFwXexzf3woq4Qzgg0_vX5Wk='  # Replace with your actual key
 cipher_suite = Fernet(key)
+
 
 # Function to encrypt data
 def encrypt_data(data):

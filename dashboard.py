@@ -1,14 +1,14 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-import os  # To check file paths
+import os
 
-# Set Page Config (Title & Layout)
+# Set Page Config
 st.set_page_config(page_title="Educational Dashboard", layout="wide")
 
 # Define logo paths
-vic_logo_path = "viclogo.png"  # Ensure this is in the same folder as `dashboard.py`
-cc_logo_path = "cc_logo.png"  # Add a Creative Commons logo if needed
+vic_logo_path = "viclogo.png"
+cc_logo_path = "cc_logo.png"
 
 # CSS for styling
 st.markdown("""
@@ -17,24 +17,24 @@ st.markdown("""
         text-align: center;
         font-size: 50px;
         font-weight: bold;
-        margin-bottom: 2px; /* Reduced space below Kidssmart+ */
+        margin-bottom: 2px;
     }
     .sub-title {
         text-align: center;
         font-size: 30px;
         font-weight: normal;
-        margin-top: 2px;  /* Pull it up closer */
+        margin-top: 2px;
         margin-bottom: 30px;
     }
     .welcome-text {
         text-align: center;
         font-size: 18px;
-        margin-bottom: 50px; /* Adjust gap before feature list */
+        margin-bottom: 50px;
     }
     .feature-list {
-        font-size: 22px; /* Increased feature list font size */
+        font-size: 22px;
         font-weight: bold;
-        line-height: 2; /* Adds spacing between feature items */
+        line-height: 2;
     }
     .centered-footer {
         text-align: center;
@@ -44,26 +44,42 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Helper function to display DataFrame with clickable URLs
+def display_clickable_dataframe(df):
+    html = "<table border='1'><thead><tr>"
+    for col in df.columns:
+        html += f"<th>{col}</th>"
+    html += "</tr></thead><tbody>"
+    
+    for _, row in df.iterrows():
+        html += "<tr>"
+        for col in df.columns:
+            if col == "url":
+                html += f"<td><a href='{row[col]}' target='_blank'>{row[col]}</a></td>"
+            else:
+                html += f"<td>{row[col]}</td>"
+        html += "</tr>"
+    html += "</tbody></table>"
+    
+    st.markdown(html, unsafe_allow_html=True)
+
 # Sidebar Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "National Reports", "Schooling Data", "Additional Resources"])
+page = st.sidebar.radio("Go to", ["Home", "National Reports", "Schooling Data", "Additional Resources", "New Datasets"])
 
 # Connect to SQLite database
 conn = sqlite3.connect("education_data.db")
 
-# Home Page with Updated UI
+# Home Page
 if page == "Home":
-    # Display the Victoria University logo (Ensure it's in the same folder)
     if os.path.exists(vic_logo_path):
         st.image(vic_logo_path, width=200)
     else:
         st.warning("⚠️ Logo not found. Please check the file name and path.")
 
-    # Centered Title
     st.markdown("<h1 class='big-title'>Kidssmart+</h1>", unsafe_allow_html=True)
     st.markdown("<h2 class='sub-title'>Educational Dashboard</h2>", unsafe_allow_html=True)
 
-    # Welcome Section
     st.markdown("""
         <div class="welcome-text">
             Kidssmart+ is a cutting-edge educational data management system designed to automate the collection, processing, and management of program data.
@@ -71,7 +87,6 @@ if page == "Home":
         </div>
     """, unsafe_allow_html=True)
 
-    # Features List
     st.markdown("""
         <div class="feature-list">
         📊 Access comprehensive educational datasets <br>
@@ -80,7 +95,6 @@ if page == "Home":
         </div>
     """, unsafe_allow_html=True)
 
-    # Centered Footer with CC Logo
     st.markdown("---")
     st.markdown("""
         <div class="centered-footer">
@@ -89,30 +103,34 @@ if page == "Home":
         </div>
     """, unsafe_allow_html=True)
 
-    # Display Creative Commons Logo if exists
     if os.path.exists(cc_logo_path):
         st.image(cc_logo_path, width=100)
 
-    # All Rights Reserved Notice
     st.markdown("<div class='centered-footer'>© 2024 Kidssmart+. All Rights Reserved.</div>", unsafe_allow_html=True)
 
 elif page == "National Reports":
     st.header("📂 National Reports")
     query = "SELECT title, file_type, year, url FROM datasets WHERE file_type='PDF'"
     df = pd.read_sql(query, conn)
-    st.dataframe(df)
+    display_clickable_dataframe(df)
 
 elif page == "Schooling Data":
     st.header("📂 Schooling Data")
     query = "SELECT title, file_type, year, url FROM datasets WHERE file_type='Excel'"
     df = pd.read_sql(query, conn)
-    st.dataframe(df)
+    display_clickable_dataframe(df)
 
 elif page == "Additional Resources":
     st.header("📂 Additional Resources")
     query = "SELECT title, file_type, year, url FROM datasets WHERE file_type IS NOT NULL"
     df = pd.read_sql(query, conn)
-    st.dataframe(df)
+    display_clickable_dataframe(df)
+
+elif page == "New Datasets":
+    st.header("📂 New Datasets")
+    query = "SELECT title, file_type, year, url FROM datasets WHERE year >= 2022"  # Adjust filter as needed
+    df = pd.read_sql(query, conn)
+    display_clickable_dataframe(df)
 
 # Close database connection
 conn.close()

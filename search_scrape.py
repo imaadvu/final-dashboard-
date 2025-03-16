@@ -1,17 +1,55 @@
 import os
 import requests
+import streamlit as st
 from bs4 import BeautifulSoup
 from serpapi import GoogleSearch
-from database import save_result, create_database
+import sqlite3
 
-# Get API Key from Environment Variable
-API_KEY = os.getenv("SERPAPI_KEY")
-
-if not API_KEY:
-    raise ValueError("Error: SerpAPI key not found. Set the API key as an environment variable.")
+# Get API Key from Streamlit Secrets
+API_KEY = st.secrets["SERPAPI_KEY"]
 
 # Initialize database
-create_database()
+def create_database():
+    conn = sqlite3.connect("search_results.db")
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS results
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  query TEXT,
+                  title TEXT,
+                  link TEXT,
+                  content TEXT)''')
+    conn.commit()
+    conn.close()
+
+# Save search result to database
+def save_result(query, title, link, content):
+    conn = sqlite3.connect("search_results.db")
+    c = conn.cursor()
+    c.execute("INSERT INTO results (query, title, link, content) VALUES (?, ?, ?, ?)",
+              (query, title, link, content))
+    conn.commit()
+    conn.close()
+
+# Fetch all results from the database
+def fetch_all_results():
+    conn = sqlite3.connect("search_results.db")
+    c = conn.cursor()
+    c.execute("SELECT * FROM results")
+    results = c.fetchall()
+    conn.close()
+    return results
+
+# Export database to a file (e.g., CSV)
+def export_database():
+    results = fetch_all_results()
+    if results:
+        with open("search_results.csv", "w", encoding="utf-8") as file:
+            file.write("ID,Query,Title,Link,Content\n")
+            for result in results:
+                file.write(f"{result[0]},{result[1]},{result[2]},{result[3]},{result[4]}\n")
+        st.success("Data exported to search_results.csv")
+    else:
+        st.warning("No data to export.")
 
 # Google Search Function
 def google_search(query):
@@ -39,21 +77,77 @@ def scrape_page(url):
     except Exception as e:
         return f"Scraping failed: {str(e)}"
 
-# Run the script
-if __name__ == "__main__":
-    query = input("Enter your search query: ")
-    results = google_search(query)
+# Streamlit UI
+def home_page():
+    # Add logo to the top-right corner
+    col1, col2 = st.columns([3, 1])  # Adjust the ratio for layout
+    with col1:
+        st.title("KidsSmart+ Educational Database")
+    with col2:
+        st.image("logo.png", width=100)  # Ensure logo.png is in the same directory
 
-    if not results:
-        print("No search results found.")
-    else:
-        print("\n=== Search Results & Scraped Content ===")
+    st.write("Welcome to KidsSmart+ Educational Database. Use the search bar below to find educational content.")
+
+    query = st.text_input("Enter your search query:")
+
+    if st.button("Search"):
+        if not query:
+            st.warning("Please enter a search query.")
+        else:
+            st.write("🔎 Searching Google...")
+            results = google_search(query)
+
+            if not results:
+                st.error("No search results found.")
+            else:
+                st.subheader("Search Results & Scraped Content")
+                for idx, res in enumerate(results, 1):
+                    title, link = res["title"], res["link"]
+                    content = scrape_page(link)
+
+                    # Save to database
+                    save_result(query, title, link, content)
+
+                    st.markdown(f"### {idx}. [{title}]({link})")
+                    st.write(content[:500] + "...")  # Show first 500 chars
+
+def database_page():
+    st.title("Database Page")
+    st.write("Download the search results from the database.")
+
+    # Fetch all results from the database
+    results = fetch_all_results()
+
+    if results:
+        st.write("Search Results:")
         for idx, res in enumerate(results, 1):
-            title, link = res["title"], res["link"]
-            content = scrape_page(link)
+            st.markdown(f"### {idx}. {res[2]}")  # res[2] is the title
+            st.write(f"**Link:** {res[3]}")  # res[3] is the link
+            st.write(f"**Content:** {res[4][:500]}...")  # res[4] is the content
+    else:
+        st.write("No results found in the database.")
 
-            # Save to database
-            save_result(query, title, link, content)
+    # Add a download button
+    if st.button("Download Data"):
+        export_database()
 
-            print(f"\n{idx}. {title} - {link}")
-            print(f"Extracted Content: {content[:300]}...")
+# Footer
+def footer():
+    st.markdown("---")
+    st.markdown("**All rights reserved KidsSmart+**")
+    st.markdown("**Mohamed Imaad Muhinudeen (s8078260) & Kavin Nanthakumar (s8049341)**")
+
+# Main function to handle page navigation
+def main():
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Go to", ["Home", "Database"])
+
+    if page == "Home":
+        home_page()
+    elif page == "Database":
+        database_page()
+
+    footer()
+
+if __name__ == "__main__":
+    main()

@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from serpapi import GoogleSearch
 import sqlite3
 
-# Get API Key from Streamlit Secrets
-API_KEY = st.secrets["SERPAPI_KEY"]
+# Hardcoded API Key
+API_KEY = "443261dfa3ceee1a755dcaa9c382a722e96fa0a8976261e6da1728bfb39c4451"  
 
 # Initialize database
 def create_database():
@@ -56,7 +56,7 @@ def google_search(query):
     params = {
         "engine": "google",
         "q": query,
-        "api_key": API_KEY,
+        "api_key": API_KEY,  # Use the hardcoded API key
         "num": 5
     }
     search = GoogleSearch(params)

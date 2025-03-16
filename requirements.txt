@@ -1,1 +1,5 @@
- 
+ echo "streamlit" >> requirements.txt
+echo "requests" >> requirements.txt
+echo "beautifulsoup4" >> requirements.txt
+echo "google-search-results" >> requirements.txt
+echo "sqlite3" >> requirements.txt

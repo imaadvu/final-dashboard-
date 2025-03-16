@@ -1,6 +1,5 @@
 streamlit
+streamlit
 pandas
-requests
-beautifulsoup4
-serpapi
+numpy
 
